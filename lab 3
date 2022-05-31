@@ -1,0 +1,287 @@
+# Lab3: Finding homologs with BLAST
+
+Copyright Joshua Rest. Do not post this lab anywhere online.
+
+# 1. We will search for homologs in proteomes from several species. 
+
+## The Species
+
+The goal of today's lab is to use BLAST to find homologous sequences (orthologs and paralogs) to Hox-C5 in Nematostella and other animals. Then, you will repeat the same task for your gene family.
+
+Today, we will work with seven animals: 3 cnidarians and 4 bilaterians. Read a little about each:
+
+*Hydra vulgaris*
+
+*Dendronephthya gigantea*
+
+*Nematostella vectensis*
+
+*Homo sapiens*
+human 
+*Branchiosoma belcheri*
+
+*Mizuhopecten yessoensis*
+
+*Acanthaster planci*
+
+>[Blackboard] 1. Match each latin name with its common name.
+
+*Hydra vulgaris* 
+freshwater polyp 
+*Dendronephthya gigantea*
+carnation coral 
+*Nematostella vectensis*
+starlet sea anemone 
+*Homo sapiens*
+human 
+*Branchiostoma belcheri*
+amphioxus
+*Mizuhopecten yessoensis*
+yesso scallop 
+*Acanthaster planci*
+crown of thorns starfish 
+>[Blackboard] 2. What phylum are each of these species in?
+*Hydra vulgaris*
+
+*Dendronephthya gigantea*
+
+*Nematostella vectensis*
+
+*Homo sapiens*
+human 
+*Branchiosoma belcheri*
+
+*Mizuhopecten yessoensis*
+
+*Acanthaster planci*
+
+## Working with Proteomes
+
+Instead of working with genomes, we are going to work with proteomes. 
+>[Blackboard] 3. What is a proteome? 
+
+Not only will working with proteomes make our life easier, but we are looking at some ancient divergences (>500 million years), so nucleotide sequences are likely saturated and not very helpful here. Protein sequences, on the other hand, are functionally constrained and therefore tend to evolve at a slower rate, making distant comparison more reasonable. 
+
+We are going to use proteomes files that have only *one isoform per gene* selected. **Rest has provided single-isoform proteomes already included (as a compressed file) in this lab3 GitHub repository.** For human, lots of information, such as gene expression, was taken into account when choosing the isoform; this is called "RefSeq select." For the other proteomes, Rest filtered out the longest isoform. He also reformatted the definition lines to: species.geneid. For human, additional annotation is also included on the definition line.
+
+We are going to create a database for BLAST to use from these sequences. BLAST will  align your query sequence with each of the sequences in the database, and then return high scoring pairs (HSPs).
+
+# 2. Get set up.
+## Fire up your EC2 instance and log in.
+![enter image description here](https://res.cloudinary.com/apideck/image/upload/v1531054194/catalog/amazon-ec2/icon128x128.png)![enter image description here](https://miro.medium.com/max/256/0*en_6yjFaxJ0H0kBK.png) 
+## Clone Lab 3
+
+On the command line, clone the lab5 repository. Look at the URL, above, of this GitHub repository. It will look something like: https://github.com/Bio312/lab3-myusername
+NOTE again that myusername below is your github username. 
+
+    cd ~/labs
+    git clone https://github.com/Bio312/lab3-L2daniellabrooks
+
+You will be asked to enter your GitHub username and password. Use the token you generated instead of your password. Git will now clone a copy of today's lab into a folder called lab3-myusername (where myusername is your GitHub username). Go there:
+
+    cd lab3-L2daniellabrooks
+
+Take a look at what is in the folder using the `ls` command. At the end of the lab, you will push the changes and files back into the online repository.
+proteomes, readme .md
+**Do all the work for this lab in this new folder you have cloned.** Check this at any time by typing ```pwd```.
+
+## Create the BLAST database
+Within the cloned folder is another folder `proteomes`, which contains the compressed proteomes that will be turned into a BLAST database today. We are then going to concatenate these proteomes into a single file (If you don't know what the word "concatenate" means, please look it up.)
+
+First, go to your lab 5 folder:
+
+    cd ~/labs/lab3-L2daniellabrooks
+
+Next, uncompress the proteomes. Run the following command:
+
+    gunzip proteomes/*.gz
+
+Now, put all the protein sequences into a single file using the cat command:
+
+    cat  proteomes/* > allprotein.fas
+
+Now we want to perform a BLAST search to find potential homologs of a query protein. Before you do this, you need to build a blast database with the proteomes we just concatenated. Read about it this [here](https://www.ncbi.nlm.nih.gov/books/NBK279688/).
+
+Type in the command to make the BLAST database:
+
+    makeblastdb -in allprotein.fas -dbtype prot
+
+
+# 3. BLAST Hox-C5 against the database to identify HOX homologs.
+
+ Now that our database is set up, we will work on our blast search.
+
+You will be conducting TWO blast searches today: one on Hox-C5 and one for your protein. In order to keep things separate, create a folder for the Hox BLAST search use the `mkdir` (make directory) command:
+
+`mkdir /home/ec2-user/labs/lab3-L2daniellabrooks/hox`
+
+Now go to this folder:
+
+`cd /home/ec2-user/labs/lab3-L2daniellabrooks/hox`
+
+Check where you are with `pwd`.
+
+**Future shortcut:** The location`/home/ec2-user` can also be represented by a tilda ``~``. So, the following command is the same: `cd ~/labs/lab3-L2daniellabrooks/hox`
+
+Check to make sure you are in the correct folder. If you type `pwd`, you should see: 
+```/home/ec2-user/labs/lab3-L2daniellabrooks/hox```
+Yes, worked 
+
+
+We will use the same Hox-C5 protein, isoform X1, as our query sequence that we used in labs 1-2. You can find this in your lab2 (LOC5514051.X1.aa.fa) folder. Or, you can download it directly using the following command:
+
+    ncbi-acc-download -F fasta -m protein XP_001634252.2 
+
+Now, perform a blast search using the query protein:
+
+     blastp -db ../allprotein.fas -query XP_001634252.2.fa -outfmt 0 -max_hsps 1 -out hox.blastp.typical.out
+
+Look at the output in ``hox.blastp.typical.out`` using ``less``.
+Scroll down to see some of the alignments of high scoring pairs. This is similar to the output shown on BLAST's web page.
+
+>[Blackboard] 4. What is the top scoring hit in the BLAST results?
+query sequence 
+>[Blackboard] 5. What is the annotation of the top hit to this query in _Dendronephthya  gigantea_? 
+homeobox hox A7 like 
+>[Blackboard] 6. What range of expect-values (E-values) are included in this output, and how should they be interpreted?
+
+Let's create a more detailed and easier to process output of the same analysis. The -outfmt flag specifies a particular output format that will be useful for our analysis. Read about output formats [here](http://www.metagenomics.wiki/tools/blast/blastn-output-format-6).
+
+Type in the following command:
+
+    blastp -db ../allprotein.fas -query XP_001634252.2.fa -outfmt "6 sseqid pident length mismatch gapopen evalue bitscore pident stitle"  -max_hsps 1 -out hox.blastp.detail.out
+
+ Take a look at the output in ``hox.blastp.detail.out`` using the ``less -S`` command.
+
+>[Blackboard] 7. How many total human hits are in the file?
+>Hint: you can use this command: `grep -c Hsapiens hox.blastp.detail.out`
+  126 
+## Filtering the BLAST output for putative homologs
+
+Next we need to choose which putative homologs to include.
+
+[This article describes how to choose e-value cutoffs.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3820096/)
+
+Let's require the e-value to be less than 1e-13.
+
+Here is a command you can use to filter our output file to satisfy this requirement:
+
+    awk '{if ($6<0.0000000000001)print $1 }' hox.blastp.detail.out > hox.blastp.detail.filtered.out
+
+Here's an easy way to count the number of results. We will use the wc command (read about it at: https://shapeshed.com/unix-wc/
+
+    wc -l hox.blastp.detail.filtered.out
+
+>[Blackboard] 8. How many total hits were removed by this filter?
+149
+**Now, we have used BLAST to identify a set of putative homologs to the query that we want to study.**
+
+NOTE: For your project, it is desirable to work with between ~25 and ~200 copies. Just to keep things interesting and manageable. If necessary, when you repeat this for your own gene, change the e-value threshold to increase or decrease the number of hits (for your own gene) - but talk to your TA when making this decision.  
+
+# 4. Obtain and align the gene family sequences
+
+Note: We already downloaded the proteomes, so these are also easily accessible using seqkit. Read about seqkit [here](https://bioinf.shenwei.me/seqkit/).
+
+     seqkit grep --pattern-file hox.blastp.detail.filtered.out ../allprotein.fas > hox.homologs.fas
+
+
+## Perform a global multiple sequence alignment in mafft:
+
+MAFFT is a multiple sequence alignment program. Read about it [here](https://mafft.cbrc.jp/alignment/software/).
+
+*Please run the following command to install MAFFT on your instance.*
+```
+ wget -O ~/tools/mafft-7.490-linux.tgz https://mafft.cbrc.jp/alignment/software/mafft-7.490-linux.tgz && tar xfvz ~/tools/mafft-7.490-linux.tgz -C ~/tools
+```
+
+Now, use the following command to make a multiple sequence alignment using mafft:
+
+```
+~/tools/mafft-linux64/mafft.bat --localpair --maxiterate 100  hox.homologs.fas   > hox.homologs.al.fas 
+```
+Provide some statistics about the alignment using [t_coffee](https://www.tcoffee.org/Projects/tcoffee/):
+
+     t_coffee -other_pg seq_reformat -in hox.homologs.al.fas -output sim
+
+ >[Blackboard] 9. What is the average percent identity between the query sequence and all other sequences?
+either 15  or 29.76
+Hints: consider sending the out output  from the above command to a file called tcstats.txt by adding a linux redirect operator to the end of the command: `> tcstats.txt` Then, you can use grep to look for the query gene: `grep LOC5514051 tcstats.txt`. Look for the line that says "AVG"; the percent identity is the number farthest to the right.
+
+>[Blackboard] 10.  What is the average percent identity among all sequences? (TOT/AVG)
+29.76?
+Hint: this is near the end of the output on the line that contains "AVG AVG". If you redirected to a file called tcstats.txt, you can see the end of the output using `tail tcstats.txt`
+
+Next, view the alignment in alv:
+
+     alv -kli  hox.homologs.al.fas | less -RS
+Note: Use your arrow keys to move around the alignment, including to the right. 
+
+Also try the "majority" option:
+
+     alv -kli --majority hox.homologs.al.fas | less -RS
+(Make sure to scroll far to the right with your arrow key).
+  
+>11. [Blackboard] Why did the coloring change in the last view, when using the -majority option?
+Hint: you can read about options by typing `alv -h`
+
+Using this view in alv, observe that there are some regions where the alignment is believable, and others where it is not. 
+
+>12. [Blackboard] Look carefully at the alignment. What makes a region of the alignment believable? (in comparison to regions that don't look well aligned.)
+  
+# 5. Find and align YOUR gene family homologs by using your "starting gene" as the query sequence.
+
+Starting over again from part 3 onward, use the same steps to find and align gene family homologs using your "starting gene" as the query sequence. 
+
+**Think carefully, for each command, about what you need to change about the command to make it work for *your* gene family.** For example, we just used the term *Hox* in some of the **file names**. This refers to the Hox gene family that Hox-C5(for example) is a part of. **If you use the exact same file names, then your file names won't make any sense!** Work * carefully* to change filenames to reflect the genes or gene family **you** are working on!
+
+Note that, at the beginning of part 3, we created a folder called "hox" to work in. Please create a folder with a different name to work in so that all of the files for your gene family analysis are there.
+
+It is REALLY important to keep track of the  commands you are using for your own gene family here! This is why we are using hackmd - it's a nice place to write this all down. **Having your new commands in this document will be checked as part of your repository check, worth 10 points!**
+
+You don't have to write brand new commands. But copy the commands that we used for Hox above and **change them so they work for your own gene family!**
+
+>[GitHub] Describe how you needed to change the commands and filenames to work for  your own gene family, without overwriting your previous results.
+mkdir /home/ec2-user/labs/lab3-L2daniellabrooks/genefamily
+cd /home/ec2-user/labs/lab3-L2daniellabrooks/genefamily 
+ncbi-acc-download -F fasta -m protein XP_001617744.2
+blastp -db ../allprotein.fas -query XP_001617744.2.fa -outfmt 0 -max_hsps 1 -out genefamily.blastp.typical.out
+
+~/tools/mafft-linux64/mafft.bat --localpair --maxiterate 100  genefamily.homologs.fas   > genefamily.homologs.al.fas 
+~/tools/mafft-linux64/mafft.bat --localpair --maxiterate 100  genefamily.homologs.fas   > genefamily.homologs.al.fas 
+>[GitHub] Keep track of all commands you use for your own gene family! 
+ 
+ When you have finished, answer the following questions:
+>[Blackboard] 13. How many proteins do you have in your final alignment after filtering for a reasonable e-value?
+ 199
+>[Blackboard] 14. What is the average percent identity in your alignment?
+54
+ 
+# 6. Save your history and push your files into the repository.
+
+Save your history:
+
+      history > lab3.commandhistory.txt
+
+  
+# Part 7. Push any new files to the remote Git repository.
+
+Add all of your results to the repository, commit them, and push them to the remote repository at GitHub.com
+Note: GitHub Classroom does not allow any files over 10MB in size. You will get an error! I have added an additional line of code to create a .gitignore file that will keep git from pushing large files (here, anything over 5MB) to your remote repository.
+
+First, go to the main lab3 directory:
+
+`cd ~/labs/lab3-myusername`
+
+Now, commit your changes:
+```bash
+     find . -size +5M | sed 's|^\./||g' | cat >> .gitignore; awk '!NF || !seen[$0]++' .gitignore
+     git add .
+     git commit -a -m "Adding all new data files I generated in AWS to the repository."
+     git pull --no-edit
+```
+git config pull.rebase false  # merge 
+Did all of the above work? **Make sure!** If so, then run the following command:
+```bash
+     git push 
+```
+ **Remember to stop your instance after you have finished the lab.**
